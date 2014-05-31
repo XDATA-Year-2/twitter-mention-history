@@ -329,6 +329,9 @@ function updateGraph() {
                 .links(graph.edges)
                 .start();
 
+           // draw history graph
+            drawHistoryChart(response.result.history)
+
             enter.call(force.drag);
 
             node.exit()
@@ -338,6 +341,8 @@ function updateGraph() {
                 .attr("r", 0.0)
                 .style("fill", "black")
                 .remove();
+
+
         }
     });
 }
@@ -491,3 +496,72 @@ window.onload = function () {
         updateGraph();
     });
 };
+
+
+
+// ----------------- Vega history chart ---------------------------------------
+
+// global values are updated during each rendering step
+var rowdata;
+var indexlist;
+var minarray;
+var maxarray;
+
+ // bind data  with the vega spec
+    function parseVegaSpec(spec, dynamicData) {
+            console.log("parsing vega spec"); 
+       vg.parse.spec(spec, function(chart) { 
+            vegaview = chart({
+                    el:"#historychart1", 
+                    data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
+                })
+                .update()
+                .on("mouseover", function(event, item) { console.log(item); }) ;
+                 });
+   }
+
+
+function internalRedrawChart() {
+    var dynamData = {} 
+    dynamData.rowdata = rowdata
+    dynamData.indexlist = indexlist
+    dynamData.minarray = minarray
+    dynamData.maxarray = maxarray
+    parseVegaSpec("./vegaBarChartSpec.json",dynamData);
+}
+
+
+
+function drawHistoryChart(data) {
+    "use strict";
+
+    console.log("data to chart:  ",data)
+
+    rowdata = []
+    indexlist = []
+    var row = []
+    minarray = []
+    maxarray = []
+    var thisval
+
+    for (var i = 0; i < data.length; i++)
+    {
+        minarray[i] = 9e50
+        maxarray[i] = 1e-50
+        row = []
+        // push the index, the name, and the quantity into a list
+        row.push(i)
+        row.push(data[i][0])
+        row.push(data[i][1])
+   
+        //if (thisval < minarray[i]) { minarray[i] = thisval}
+        //if (thisval > maxarray[i]) { maxarray[i] = thisval}
+        rowdata.push(row)
+        indexlist.push({index: i})
+    }
+
+    console.log("rowdata=",rowdata)  
+    internalRedrawChart()
+};
+
+

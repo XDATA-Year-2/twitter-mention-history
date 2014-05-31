@@ -20,6 +20,10 @@
 <script src=cache/bootstrap.min.js></script>
 <link rel="shortcut icon" href=/img/tangelo.ico>
 
+<script src="http://trifacta.github.io/vega/lib/d3.v3.min.js"></script>
+<script src="http://trifacta.github.io/vega/lib/d3.geo.projection.min.js"></script>
+<script src="http://trifacta.github.io/vega/lib/topojson.js"></script>
+<script src="http://trifacta.github.io/vega/vega.js"></script>
 
 <style>
     html, body {
@@ -84,10 +88,14 @@
 
 <!-- Create a fullscreen SVG element -->
 <svg id=graph>
-    <rect style="width=100% height=80%" style="fill:silver;" />
+    <rect style="width=100% height=70%" style="fill:silver;" />
     <g id="links"></g>
     <g id="nodes"></g>
 </svg>
+
+<div id=historychart1>
+    <rect style="width=100% height=20%" style="fill:gray;" />
+</div>
 
 <!-- Create an SVG element to represent the legend -->
 <svg id=legend height=100% style="position:fixed; top:100px; right:0px; pointer-events:none;"></svg>

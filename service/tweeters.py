@@ -62,8 +62,12 @@ class TweeterHistory:
             print self.characters[self.characters.keys()[charIndex]]
 
     # return the whole list so it can be rendered in a vis or processed some other way. 
-    def getHistoryList():
-        return self.characters
+    def getHistoryList(self):
+        historyList = []
+        for key in self.characters:
+            historyList.append([ self.characters[key]['tweeter'], self.characters[key]['quantity']])
+        print historyList
+        return historyList
 
     # this method implements a rolling-history architecture where the records
     # are kept only for so long.  During each cycle event (when time moves) the list is
@@ -108,7 +112,7 @@ recorders = dict()
 #recorders['source'] = queryHistory.TweeterHistory()
 #recorders['target'] = queryHistory.TweeterHistory()
 recorders['source'] = TweeterHistory()
-recorders['source'].setMaxHistoryLength(3)
+recorders['source'].setMaxHistoryLength(10)
 recorders['target'] = TweeterHistory()
 recorders['target'].setIndexByTarget()
 queryCount = 0
@@ -161,7 +165,9 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
 
     # Get a handle to the database collection.
     try:
-        c = pymongo.Connection(host)[database][collection]
+        connection = pymongo.Connection(host)
+        db = connection[database]
+        c = db[collection]
     except pymongo.errors.AutoReconnect as e:
         response["error"] = "database error: %s" % (e.message)
         return response
@@ -239,12 +245,23 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
 
     talkers = [{"tweet": n, "distance": distance[n]} for n in talkers]
 
+    # query the history logger to get a list of top tweeters
+    historyLog = recorders['source'].getHistoryList()
+
     # Stuff the graph data into the response object, and return it.
     response["result"] = { "nodes": talkers,
-                           "edges": edges }
+                           "edges": edges,
+                           "history":historyLog }
 
     # count this query and return response.  We call the cycle method on the recorders to indicate 
     queryCount = queryCount+1
     recorders['source'].printState()
     recorders['source'].cycle()
+   
+    connection.close()
+
     return bson.json_util.dumps(response)
+
+
+
+
