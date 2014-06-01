@@ -21,7 +21,10 @@
       "type": "linear",
       "range": "height",
       "nice": true,
-      "domain": [0, 250]
+    "domain": {
+        "fields": [
+          {"data":"rows","field":"data.2"}
+        ]}
     },
     {
       "name": "color", "type": "ordinal", "range": "category10"
@@ -43,7 +46,28 @@
               "y2": {"scale": "y", "value": 0}
             },
             "update" :   {"fill": {"value" :"steelblue"} },
-            "hover" : {"fill": {"value":"red"} }
+            "hover" : {"fill": {"value":"green"} }
+          }
+        },
+        {
+          "type": "text",
+          "from":  {"data":"rows"},
+          "properties": {
+            "enter": {
+              "text" : {"field":"data.1"},
+              "align": {"value":"right"},
+              "font": {"field":"font"},
+              "fontSize":{"value":20},
+              "x": {"scale": "x", "field": "data.0"},
+              "dx": {"scale":"x", "band":true, "offset":-1},
+              "dy": {"value":-5},
+              "angle":{"value":0},
+              "y": {"scale": "y", "field": "data.2"},
+              "fill":{"value":"black"},
+              "opacity": {"value": 0.0}
+            },
+            "update" :   {"fill":{"value":"black"}, "opacity":{"value": 0}},
+            "hover" :  {"opacity": {"value":1.0}  }
           }
         }
       ]
