@@ -1,5 +1,5 @@
 {
-  "width": 600,
+  "width": 1000,
   "height": 300,
   "data": [
     {
@@ -14,7 +14,7 @@
       "name": "x",
       "type":"ordinal",
       "range": "width",
-       "domain": {"data":"rows", "field":"data.1"}
+       "domain": {"data":"rows", "field":"data.0"}
     },
     {
       "name": "y",
