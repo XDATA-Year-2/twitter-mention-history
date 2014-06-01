@@ -507,6 +507,17 @@ var indexlist;
 var minarray;
 var maxarray;
 
+function centerOnClickedHistoryRecord(item) {
+    console.log("centering on:",item.text)
+      // assign the new center of the mentions graph
+      twitter.center.val(item.text)
+      // remove the previous graph
+      d3.select("#nodes").selectAll("*").remove();
+      d3.select("#links").selectAll("*").remove();
+      // draw the new graph
+      updateGraph(true)
+}
+
  // bind data  with the vega spec
     function parseVegaSpec(spec, dynamicData) {
             console.log("parsing vega spec"); 
@@ -516,7 +527,7 @@ var maxarray;
                     data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
                 })
                 .update()
-                .on("mouseover", function(event, item) { console.log(item); }) ;
+                .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
                  });
    }
 
@@ -551,11 +562,11 @@ function drawHistoryChart(data) {
         row = []
         // push the index, the name, and the quantity into a list
         row.push(i)
-        row.push(data[i][0])
-        row.push(data[i][1])
+        row.push(data[i][0])  // push the name
+        row.push(data[i][1])  // push the number of tweets
    
-        //if (thisval < minarray[i]) { minarray[i] = thisval}
-        //if (thisval > maxarray[i]) { maxarray[i] = thisval}
+        if (data[i][1] < minarray[i]) { minarray[i] = data[i][1]}
+        if (data[i][1] > maxarray[i]) { maxarray[i] = data[i][1]}
         rowdata.push(row)
         indexlist.push({index: i})
     }
