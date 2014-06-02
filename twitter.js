@@ -173,6 +173,8 @@ function updateGraph() {
                 return;
             }
 
+            //console.log('data returned:',response.result)
+
             // Save the last iteration of node data, so we can transfer the
             // positions to the new iteration.
             map = {};
@@ -564,13 +566,15 @@ function drawHistoryChart(data,elementToDraw) {
         minarray[i] = 9e50
         maxarray[i] = 1e-50
         row = []
-        // push the index, the name, and the quantity into a list
+        // push the index, the name, and the quantity into a list.  When this was initially tested using in-memory
+        // storage, the array indices were numeric, mongo return a JSON object, so pull out by field name.  Vega is 
+        // passed an array like this : [ [ 0,'howdydoody',3], [ 0,'someone',10], [ 2,'someoneelse',6], ...]
         row.push(i)
-        row.push(data[i][0])  // push the name
-        row.push(data[i][1])  // push the number of tweets
+        row.push(data[i]['tweeter'])  // push the name
+        row.push(data[i]['quantity'])  // push the number of tweets
    
-        if (data[i][1] < minarray[i]) { minarray[i] = data[i][1]}
-        if (data[i][1] > maxarray[i]) { maxarray[i] = data[i][1]}
+        if (data[i]['quantity'] < minarray[i]) { minarray[i] = data[i]['quantity']}
+        if (data[i]['quantity'] > maxarray[i]) { maxarray[i] = data[i]['quantity']}
         rowdata.push(row)
         indexlist.push({index: i})
     }
