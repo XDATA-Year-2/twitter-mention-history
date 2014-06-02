@@ -36,7 +36,7 @@ class TweeterHistory:
         self.senderIndexed = True
         self.queryResponses = []
         self.maxHistoryLength = 999999999
-        self.topkvalue = 25             # default number of items to return
+        self.topkvalue = 15             # default number of items to return
         self.mongodbname = 'kitware_y2'
         self.sessionname = ''   # to be initialized at instantiation time
         self.mongoconnection = 0    # connection object
@@ -101,9 +101,16 @@ class TweeterHistory:
     def getHistoryList(self):
         historyList = []
         # we project away the Id field so it doesn't get copied through to VEGA and waste transfer capacity
+        # the simple query below worked before we used limits and sort.  it is more complicated to do the sort:
+        #       find({'storeTime': {'$exists': 1}},{'_id':0})
+        
+        # specify the query separately from the limit and sort so it can be passed through to mongo.  This syntax
+        # doesn't match the mongodb syntax directly.  The direction is opposite what I expected, it must be getting 
+        # reversed again while being processed through Vega.  This -1 ordering yields a visual of high value on left
+        # decreasing to low value on right. 
+        querystring = {'storeTime': {'$exists': 1} }
+        iterator = self.data_coll.find(spec=querystring,limit=self.topkvalue,fields={'_id':0}, sort=[('quantity',-1)])
 
-        #find({'storeTime': {'$exists': 1}},{'_id':0}).sort({'quantity':1})
-        iterator = self.data_coll.find({'storeTime': {'$exists': 1}},{'_id':0})
         for record in iterator:
             historyList.append(record)
         print historyList
