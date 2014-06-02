@@ -191,10 +191,11 @@ function updateGraph() {
                 }
             });
 
+            // CRL - moved to 1/4 into screen instead of 1/2
             tau = 2 * Math.PI;
             angle = tau / newidx.length;
             $.each(newidx, function (i, v) {
-                graph.nodes[i].x = (width / 4) * Math.cos(i * angle) + (width / 2);
+                graph.nodes[i].x = (width / 4) * Math.cos(i * angle) + (width / 4);
                 graph.nodes[i].y = (height / 4) * Math.sin(i * angle) + (height / 2);
             });
 
@@ -414,6 +415,8 @@ window.onload = function () {
         // 3/2014: changed link strength down from charge(-500), link(100) to charge(-2000)
         // to reduce the node overlap but still allow some node wandering animation without being too stiff
 
+        // 6/2014: divided width/2 to move to left side and leave room for history charts
+
         width = $(window).width();
         height = $(window).height();
         force = d3.layout.force()
@@ -421,7 +424,7 @@ window.onload = function () {
             .linkDistance(100)
             .gravity(0.2)
             .friction(0.6)
-            .size([width, height]);
+            .size([width/2, height]);
 
         //color = d3.scale.category20();
         color = twitterDistanceFunction;

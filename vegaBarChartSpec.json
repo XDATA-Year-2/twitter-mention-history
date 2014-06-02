@@ -1,6 +1,6 @@
 {
-  "width": 1000,
-  "height": 300,
+  "width": 500,
+  "height": 250,
   "data": [
     {
       "name": "rows"
@@ -55,7 +55,7 @@
           "properties": {
             "enter": {
               "text" : {"field":"data.1"},
-              "align": {"value":"right"},
+              "align": {"value":"center"},
               "font": {"field":"font"},
               "fontSize":{"value":20},
               "x": {"scale": "x", "field": "data.0"},
