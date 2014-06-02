@@ -69,6 +69,15 @@ class TweeterHistory:
         print historyList
         return historyList
 
+    # clear out all the data structures and prepare to start again, except the configuration 
+    # variables (maxHistoryLength, etc.) are maintained.
+    def reset(self):
+        for key in self.characters:
+            self.characters.pop(key)
+        for record in self.queryResponses:
+            self.queryResponses.pop(record)
+        self.iterations = 0
+
     # this method implements a rolling-history architecture where the records
     # are kept only for so long.  During each cycle event (when time moves) the list is
     # checked to see if anyone should be removed because they haven't been seen in quite
@@ -96,6 +105,17 @@ class TweeterHistory:
                 self.characters[response['source']] = {'tweeter': response['source'],
                                                                         'quantity': 1,
                                                                         'storeTime': self.iterations }
+        else:
+            # we are indexing by receiver
+            if response['target'] in self.characters.keys():
+                #print "already recorded:",response['source']
+                # increment the count of this tweeter since he/she was active in this activity
+                self.characters[response['target']]['quantity'] += 1
+            else:
+                print "new entry:",response['target']
+                self.characters[response['target']] = {'tweeter': response['target'],
+                                                                        'quantity': 1,
+                                                                        'storeTime': self.iterations }
 
 
         #self.printState()
@@ -115,6 +135,7 @@ recorders['source'] = TweeterHistory()
 recorders['source'].setMaxHistoryLength(20)
 recorders['target'] = TweeterHistory()
 recorders['target'].setIndexByTarget()
+recorders['target'].setMaxHistoryLength(20)
 queryCount = 0
 
 #
@@ -202,6 +223,7 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         for tweeter in results:
             # record this query result and compile the running history of tweeters
             recorders['source'].addRecord(tweeter)
+            recorders['target'].addRecord(tweeter)
             #recorders['source'].printState()
         results.rewind()
 
@@ -247,17 +269,22 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
 
     # query the history logger to get a list of top tweeters
     historyLog = recorders['source'].getHistoryList()
-
+    targetHistoryLog = recorders['target'].getHistoryList()
     # Stuff the graph data into the response object, and return it.
     response["result"] = { "nodes": talkers,
                            "edges": edges,
-                           "history":historyLog }
+                           "history":historyLog, 
+                           "targetHistory": targetHistoryLog }
 
     # count this query and return response.  We call the cycle method on the recorders to indicate 
     queryCount = queryCount+1
+
+    # tell the history object the cycle has ended
     recorders['source'].printState()
     recorders['source'].cycle()
-   
+    recorders['target'].printState()
+    recorders['target'].cycle()
+
     connection.close()
 
     return bson.json_util.dumps(response)

@@ -331,7 +331,8 @@ function updateGraph() {
                 .start();
 
            // draw history graph
-            drawHistoryChart(response.result.history)
+            drawHistoryChart(response.result.history,"#historychart1")
+            drawHistoryChart(response.result.targetHistory,"#historychart2")
 
             enter.call(force.drag);
 
@@ -522,11 +523,11 @@ function centerOnClickedHistoryRecord(item) {
 }
 
  // bind data  with the vega spec
-    function parseVegaSpec(spec, dynamicData) {
+    function parseVegaSpec(spec, dynamicData, elem) {
             console.log("parsing vega spec"); 
        vg.parse.spec(spec, function(chart) { 
             vegaview = chart({
-                    el:"#historychart1", 
+                    el: elem, 
                     data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
                 })
                 .update()
@@ -535,18 +536,18 @@ function centerOnClickedHistoryRecord(item) {
    }
 
 
-function internalRedrawChart() {
+function internalRedrawChart(elem) {
     var dynamData = {} 
     dynamData.rowdata = rowdata
     dynamData.indexlist = indexlist
     dynamData.minarray = minarray
     dynamData.maxarray = maxarray
-    parseVegaSpec("./vegaBarChartSpec.json",dynamData);
+    parseVegaSpec("./vegaBarChartSpec.json",dynamData,elem);
 }
 
 
 
-function drawHistoryChart(data) {
+function drawHistoryChart(data,elementToDraw) {
     "use strict";
 
     console.log("data to chart:  ",data)
@@ -575,7 +576,7 @@ function drawHistoryChart(data) {
     }
 
     console.log("rowdata=",rowdata)  
-    internalRedrawChart()
+    internalRedrawChart(elementToDraw)
 };
 
 

@@ -92,7 +92,7 @@
 
 <!-- Create a fullscreen SVG element -->
    <div class=row>
-        <div class=col-md-6>
+        <div class=col-md-8>
             <svg id=graph>
                 <rect style="height=70%" style="fill:silver;" />
                  <g id="links"></g>
@@ -100,11 +100,16 @@
             </svg>
         </div>
 
-        <div class=col-md-6>
-        <text>Tweet Sending History Chart </text>
+        <div class=col-md-4>
+            <text>Tweet Sending History Chart </text>
             <div id=historychart1>
-                <rect  style="fill:gray;" />
+                    <rect  style="fill:gray;" />
             </div>
+            <text style="margin-top: 50px">Tweet Receiving History Chart </text>
+            <div id=historychart2> 
+                    <rect  style="fill:gray;" /> 
+            </div>   
+
         </div>
     </div>
 
@@ -148,8 +153,14 @@
         </div>
 
         <div class=row>
-            <div id=update class="btn btn-success offset1">Update</div>
-            <div id=animate class="btn btn-success ">Animate</div>
+            <div class=col-md-3>
+                <div id=update class="btn btn-success offset1">Update</div>
+                <div id=animate class="btn btn-success ">Animate</div>
+            </div>
+           <div class=col-md-6>
+                <div id=clearSend class="btn btn-success offset1">Clear Sender History</div>
+                <div id=clearRcv class="btn btn-success ">Clear Receiver History</div>
+            </div>           
         </div>
         <div class=row>
                 <spacer id="spacer1" type="vertical" height="20"></spacer>
