@@ -19,6 +19,9 @@ twitter.host = null;
 twitter.ac = null;
 twitter.textmode = false;
 
+//should user click of node make this node the new center?
+twitter.clickCausesFollow = false;
+
 var LoggingLocation = "http://xd-draper.xdata.data-tactics-corp.com:1337"
 twitter.testMode = true;
 twitter.echoLogsToConsole = true;
@@ -235,12 +238,18 @@ function updateGraph() {
                         loggedVisitToEntry(d)
                 });
 
-            node = svg.select("g#nodes")
+
+            // the user may want to force re-centering on the graph by clicking a new center
+            // directly.  Add this callback to always fire, then the method only takes action if
+            // the "following" mode is set. 
+
+            var node2 = svg.select("g#nodes")
                 .selectAll(".node")
                 .data(graph.nodes, function (d) { return d.tweet; })
                 .on("click", function(d) {
-                        centerOnClickedGraphNode(d)
+                        centerOnClickedGraphNode(d.tweet)
                 });
+
 
 
             // support two different modes, where circular nodes are drawn for each entity or for where the
@@ -491,27 +500,28 @@ window.onload = function () {
 
         // ---- setup controls for the history ------
 
+        // define a slider that controls the length of the history records to display.  An ajax
+        // call is made whenever the slider value is changed to update the logic in the 
+        // python service that returns data for Vega rendering. 
 
-            twitter.history_length.slider({
-            min: 10,
-            max: 50,
-            value: 15,
-            slide: function (evt, ui) {
-                d3.select("#history_length-label")
-                    .text('show top '+ui.value+ ' tweeters');
-            },
-            change: function (evt, ui) {
-                d3.select("history_length_label")
-                    .text(ui.value);
-                updateHistoryLength();
+        twitter.history_length.slider({
+        min: 10,
+        max: 50,
+        value: 15,
+        slide: function (evt, ui) {
+            d3.select("#history_length-label")
+                .text('show top '+ui.value+ ' tweeters');
+        },
+        change: function (evt, ui) {
+            d3.select("history_length_label")
+                .text(ui.value);
+            updateHistoryLength();
             }
         });
         twitter.history_length.slider("value", twitter.history_length.slider("value"));
 
-     d3.select("#update-history")
-            .on("click", updateGraph);
-
-            
+        d3.select("#update-history")
+            .on("click", updateGraph);         
 
 // --- end of history panel additions
 
@@ -540,6 +550,17 @@ window.onload = function () {
                 updateGraph(true);
             });
 
+
+        // respond to the allow click to cause follow operation being clicked
+       d3.select("#clickfollow")
+            .on("click", function () {
+                twitter.clickCausesFollow = !twitter.clickCausesFollow;
+                //console.log("clickfollow=",twitter.clickCausesFollow);
+                twitter.ac.logUserActivity("user toggled click follow mode", "clickfollow", twitter.ac.WF_EXPLORE);
+                // reload the graph with nodes that have or don't have events attached on them
+                updateGraph();
+            });   
+
         // block the contextmenu from coming up (often attached to right clicks). Since many 
         // of the right clicks will be on the graph, this has to be at the document level so newly
         // added graph nodes are all covered by this handler.
@@ -547,21 +568,28 @@ window.onload = function () {
         $(document).bind('contextmenu', function(e){
             e.preventDefault();
             return false;
-})
+            })
 
         updateGraph();
     });
 };
 
+// this method is called when a user clicks on a node in the graph.  There is a mode where the
+// user has elected to re-center around clicked nodes, and this can be enabled/disabled through
+// a UI checkbox, so examine the state variable to decide if any action should be taken. This
+// method is always called because callbacks are alwayw placed on the nodes. 
+
 function centerOnClickedGraphNode(item) {
-    console.log("centering on:",item.text)
-      // assign the new center of the mentions graph
-      twitter.center.val(item.text)
-      // remove the previous graph
-      d3.select("#nodes").selectAll("*").remove();
-      d3.select("#links").selectAll("*").remove();
-      // draw the new graph
-      updateGraph(true)
+    if (twitter.clickCausesFollow==true) {
+        console.log("centering on:",item)
+          // assign the new center of the mentions graph
+          twitter.center.val(item)
+          // remove the previous graph
+          d3.select("#nodes").selectAll("*").remove();
+          d3.select("#links").selectAll("*").remove();
+          // draw the new graph
+          updateGraph()
+      }
 }
 
 
