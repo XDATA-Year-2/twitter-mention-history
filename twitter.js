@@ -14,6 +14,7 @@ twitter.date = null;
 twitter.range = null;
 twitter.center = null;
 twitter.degree = null;
+twitter.history_length = null;
 twitter.host = null;
 twitter.ac = null;
 twitter.textmode = false;
@@ -99,6 +100,7 @@ function displayDate(d) {
 function loggedVisitToEntry(d) {
         //console.log("mouseover of entry for ",d.user)
         twitter.ac.logUserActivity("hover over entity: "+d.tweet, "hover", twitter.ac.WF_EXPLORE);
+     
 }
 
 function loggedDragVisitToEntry(d) {
@@ -201,7 +203,7 @@ function updateGraph() {
                 graph.nodes[i].y = (height / 4) * Math.sin(i * angle) + (height / 2);
             });
 
-            transition_time = 1000;
+            transition_time = 600;
 
             link = svg.select("g#links")
                 .selectAll(".link")
@@ -232,6 +234,14 @@ function updateGraph() {
                 .on("mouseover", function(d) {
                         loggedVisitToEntry(d)
                 });
+
+            node = svg.select("g#nodes")
+                .selectAll(".node")
+                .data(graph.nodes, function (d) { return d.tweet; })
+                .on("click", function(d) {
+                        centerOnClickedGraphNode(d)
+                });
+
 
             // support two different modes, where circular nodes are drawn for each entity or for where the
             // sender name is used inside a textbox. if twitter.textmode = true, then render text
@@ -380,7 +390,8 @@ function toggleAnimation() {
         update.attr("disabled", true);
         twitter.ac.logUserActivity("user enabled animation", "animation", twitter.ac.WF_EXPLORE);
 
-        timeout = setInterval(advanceTimer, transition_time * 1.5);
+        // slowed down the animation from 1.5x to 3.0x 
+        timeout = setInterval(advanceTimer, transition_time * 3.0);
     } else {
         anim.text("Animate")
             .classed("btn-success", true)
@@ -437,6 +448,7 @@ window.onload = function () {
         twitter.range = $("#range");
         twitter.center = $("#center");
         twitter.degree = $("#degree");
+        twitter.history_length = $("#history_length");
 
         twitter.date.slider({
             min: new Date("September 24, 2012").getTime(),
@@ -477,11 +489,40 @@ window.onload = function () {
         });
         twitter.degree.spinner("value", 3);
 
+        // ---- setup controls for the history ------
+
+
+            twitter.history_length.slider({
+            min: 10,
+            max: 50,
+            value: 15,
+            slide: function (evt, ui) {
+                d3.select("#history_length-label")
+                    .text('show top '+ui.value+ ' tweeters');
+            },
+            change: function (evt, ui) {
+                d3.select("history_length_label")
+                    .text(ui.value);
+                updateHistoryLength();
+            }
+        });
+        twitter.history_length.slider("value", twitter.history_length.slider("value"));
+
+     d3.select("#update-history")
+            .on("click", updateGraph);
+
+            
+
+// --- end of history panel additions
+
         d3.select("#update")
             .on("click", updateGraph);
 
         d3.select("#animate")
             .on("click", toggleAnimation);
+
+        d3.select("#clearSend")
+            .on("click", clearHistoryCallback);
 
         // respond to the text label button being clicked
        d3.select("#usetext")
@@ -499,9 +540,29 @@ window.onload = function () {
                 updateGraph(true);
             });
 
+        // block the contextmenu from coming up (often attached to right clicks). Since many 
+        // of the right clicks will be on the graph, this has to be at the document level so newly
+        // added graph nodes are all covered by this handler.
+
+        $(document).bind('contextmenu', function(e){
+            e.preventDefault();
+            return false;
+})
+
         updateGraph();
     });
 };
+
+function centerOnClickedGraphNode(item) {
+    console.log("centering on:",item.text)
+      // assign the new center of the mentions graph
+      twitter.center.val(item.text)
+      // remove the previous graph
+      d3.select("#nodes").selectAll("*").remove();
+      d3.select("#links").selectAll("*").remove();
+      // draw the new graph
+      updateGraph(true)
+}
 
 
 
@@ -526,7 +587,7 @@ function centerOnClickedHistoryRecord(item) {
 
  // bind data  with the vega spec
     function parseVegaSpec(spec, dynamicData, elem) {
-            console.log("parsing vega spec"); 
+            //console.log("parsing vega spec"); 
        vg.parse.spec(spec, function(chart) { 
             vegaview = chart({
                     el: elem, 
@@ -547,12 +608,29 @@ function internalRedrawChart(elem) {
     parseVegaSpec("./vegaBarChartSpec.json",dynamData,elem);
 }
 
+function updateHistoryLength(){
+        data = {
+            actionCommand: 'setHistoryDisplayLength',
+            displayLength: parseInt(twitter.history_length.slider("value"))
+        };
+        console.log("history length in JS is",data.displayLength)
+    $.ajax({
+        url: "service/tweeters/" + twitter.host + "/xdata/twitter_mentions",
+        data: data,
+        dataType: "json",
+        success: function (response) {
+            drawHistoryChart(response.result.history,"#historychart1")
+            drawHistoryChart(response.result.targetHistory,"#historychart2")
+        }
+    });
+}
+
 
 
 function drawHistoryChart(data,elementToDraw) {
     "use strict";
 
-    console.log("data to chart:  ",data)
+    //console.log("data to chart:  ",data)
 
     rowdata = []
     indexlist = []
@@ -579,8 +657,22 @@ function drawHistoryChart(data,elementToDraw) {
         indexlist.push({index: i})
     }
 
-    console.log("rowdata=",rowdata)  
+    //console.log("rowdata=",rowdata)  
     internalRedrawChart(elementToDraw)
 };
 
-
+function clearHistoryCallback() {
+    // the user has requested to clear the history charts, so make an ajax call to remove  entries from the history
+     data = {
+        actionCommand: 'clearHistory'
+    };
+      $.ajax({
+        url: "service/tweeters/" + twitter.host + "/xdata/twitter_mentions",
+        data: data,
+        dataType: "json",
+        success: function (response) {
+            drawHistoryChart({},"#historychart1")
+            drawHistoryChart({},"#historychart2")
+        }
+    });
+}

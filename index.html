@@ -78,6 +78,44 @@
 </div>
 
 
+<div id=history-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>History Controls</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>Configure the search histroy options</p>
+
+               <p>The controls below affect how the app maintains and displays history records. 
+               Change the length of history that is maintained and how much is displayed here. 
+               Optionally clear the history in this session whenever desired. </p>
+            </div>
+
+
+            <div class=row style="margin-left: 20px">
+            <div class=col-md-6>
+                <div id=clearSend class="btn btn-success offset1">Clear  History</div>
+   <!--             <div id=clearRcv class="btn btn-success ">Clear Receiver History</div>   -->
+            </div> 
+
+                <div class=col-md-5>
+                    <!-- JQuery slider -->
+                    <h4>Display History Length</h4>
+                    <div id=history_length></div>
+                    <div id=history_length-label class=code></div>
+                </div>
+            </div>
+
+            <div class=modal-footer>
+                <a id=update-history class="btn btn-success offset1">Update</a>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="navbar navbar-default navbar-fixed-top">
     <div class=navbar-header>
         <a class=navbar-brand href=/examples>Tangelo</a>
@@ -86,13 +124,14 @@
     <ul class="nav navbar-nav">
         <li class=active> <a>Twiter Mention With History</a>
         <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#history-panel><span class="glyphicon glyphicon-info-sign"></span> History Controls</a>
     </ul>
 </div>
 
 
 <!-- Create a fullscreen SVG element -->
    <div class=row>
-        <div class=col-md-8>
+        <div class=col-md-7>
             <svg id=graph>
                 <rect style="height=70%" style="fill:silver;" />
                  <g id="links"></g>
@@ -100,12 +139,16 @@
             </svg>
         </div>
 
-        <div class=col-md-4>
-            <text>Tweet Sending History Chart </text>
+        <div class=col-md-5>
+            <h3>Tweet Sending History Chart </h3>
+            <p> This chart displays the most prolific tweeters organized by activity.  The 
+            number of entities displayed can be adjusted through the history control panel.</p>
             <div id=historychart1>
                     <rect  style="fill:gray;" />
             </div>
-            <text style="margin-top: 50px">Tweet Receiving History Chart </text>
+            <h3 style="margin-top: 50px">Tweet Receiving History Chart </h3>
+            <p> This chart displays the most popular targets (receivers) of tweeting activity organized by quantity of messages received.  The 
+            number of entities displayed can be adjusted through the history control panel.</p>
             <div id=historychart2> 
                     <rect  style="fill:gray;" /> 
             </div>   
@@ -157,10 +200,7 @@
                 <div id=update class="btn btn-success offset1">Update</div>
                 <div id=animate class="btn btn-success ">Animate</div>
             </div>
-           <div class=col-md-6>
-                <div id=clearSend class="btn btn-success offset1">Clear Sender History</div>
-                <div id=clearRcv class="btn btn-success ">Clear Receiver History</div>
-            </div>           
+             
         </div>
         <div class=row>
                 <spacer id="spacer1" type="vertical" height="20"></spacer>

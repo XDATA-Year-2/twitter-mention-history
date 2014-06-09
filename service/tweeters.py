@@ -113,13 +113,13 @@ class TweeterHistory:
 
         for record in iterator:
             historyList.append(record)
-        print historyList
+        #print historyList
         return historyList
 
     # clear out all the data structures and prepare to start again, except the configuration 
     # variables (maxHistoryLength, etc.) are maintained.
     def reset(self):
-        self.data_coll.drop()
+        self.data_coll.remove({'storeTime':{'$exists':1}})
         self.data_coll.update({'iterations': {'$exists': 1}} , { 'iterations': 0 } )
 
     # this method implements a rolling-history architecture where the records
@@ -145,12 +145,12 @@ class TweeterHistory:
             # we are indexing by sender
             #if response['source'] in self.characters.keys():
             if (self.data_coll.find({'tweeter': response['source']}).count() > 0):
-                print "already recorded:",response['source']
+                #print "already recorded:",response['source']
                 # increment the count of this tweeter since he/she was active in this activity
                 #self.characters[response['source']]['quantity'] += 1
                 self.data_coll.update( { "tweeter": response["source"] }, { '$inc': { 'quantity': 1 } } )
             else:
-                print "new entry:",response['source']
+                #print "new entry:",response['source']
                 iterationcount = self.data_coll.find({'iterations':{'$exists':1}})[0]['iterations']
                 self.data_coll.insert({'tweeter': response['source'],
                                                                         'quantity': 1,
@@ -158,12 +158,12 @@ class TweeterHistory:
         else:
             # we are indexing by receiver
             if (self.data_coll.find({'tweeter': response['target']}).count() > 0):
-                print "already recorded:",response['target']
+                #print "already recorded:",response['target']
                 # increment the count of this tweeter since he/she was active in this activity
                 #self.characters[response['source']]['quantity'] += 1
                 self.data_coll.update( { "tweeter": response["target"] }, { '$inc': { 'quantity': 1 } } )
             else:
-                print "new entry:",response['target']
+                #print "new entry:",response['target']
                 iterationcount = self.data_coll.find({'iterations':{'$exists':1}})[0]['iterations']
                 self.data_coll.insert({'tweeter': response['target'],
                                                                         'quantity': 1,
@@ -192,10 +192,31 @@ queryCount = 0
 
 #
 
-def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None):
+def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None,actionCommand=None,displayLength=None):
     global queryCount
     global recorders
     response = {}
+
+    # the calling program may have specified an action command to reconfigure the history
+    # records or perform some other event-based activity.  Examime the command argument
+    # and take any requested actions.  if no actions have been specfied, continue with the 
+    # rendering update
+
+    if (actionCommand != None):
+        print "received actionCommand: ",actionCommand
+        # action requested was to clear the history
+        if actionCommand=='clearHistory':
+            recorders['source'].reset()
+            recorders['target'].reset()
+            return response
+      # request was to change the display length (the topK value). Value was passed as argument
+        if actionCommand=='setHistoryDisplayLength':
+            print "setting history display to ", int(displayLength)
+            recorders['source'].setNumberOfValuesToReturn(int(displayLength))
+            recorders['target'].setNumberOfValuesToReturn(int(displayLength))
+            return response
+
+
 
     # force reload of class (useful during development when source code is being changed.) This can be commented out
     # for production use when the code is not being changed anymore.  Note: this trick only works if the objects are instatiated
@@ -271,7 +292,7 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         }
         results = c.find(query, fields=["target", "source"])
 
-        print 'returned ',results.count(),' tweeters'
+        #print 'returned ',results.count(),' tweeters'
         for tweeter in results:
             # record this query result and compile the running history of tweeters
             recorders['source'].addRecord(tweeter)
@@ -332,9 +353,9 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     queryCount = queryCount+1
 
     # tell the history object the cycle has ended
-    recorders['source'].printState()
+    #recorders['source'].printState()
     recorders['source'].cycle()
-    recorders['target'].printState()
+    #recorders['target'].printState()
     recorders['target'].cycle()
 
     connection.close()
