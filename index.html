@@ -1,0 +1,214 @@
+<!doctype html>
+<meta charset=utf-8>
+
+
+<!-- <script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script> -->
+<script src=cache/jquery-1.9.1.min.js></script>
+<script src=cache/jquery-ui.min.js></script>
+<script src=cache/d3.v3.min.js charset=utf-8></script>
+<script src=/js/tangelo.min.js></script>
+
+<!-- Driver script for this app -->
+<script src=draper.activity_logger-2.0.js></script>
+
+<script src=twitter.js></script>
+
+<!-- Styling for UI elements -->
+<link href=cache/bootstrap.min.css rel=stylesheet type=text/css>
+<link href=cache/jquery-ui.css rel=stylesheet>
+<link href=cache/bootstrap-glyphicons.css rel=stylesheet>
+<script src=cache/bootstrap.min.js></script>
+<link rel="shortcut icon" href=/img/tangelo.ico>
+
+<!--
+<script src="http://trifacta.github.io/vega/lib/d3.v3.min.js"></script>
+<script src="http://trifacta.github.io/vega/lib/d3.geo.projection.min.js"></script>
+<script src="http://trifacta.github.io/vega/lib/topojson.js"></script>
+<script src="http://trifacta.github.io/vega/vega.js"></script>
+-->
+
+<script src=cache/vega-1.3.3.min.js></script>
+
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 50px;
+    }
+
+    #control-panel {
+        background-color: lightgray;
+        padding-bottom: 20px;
+    }
+
+    #map img {
+        max-width: none;
+    }
+</style>
+
+<title>Twitter Mention With History</title>
+
+
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>Explore the Twitter correspondence network.</p>
+
+               <p>In this app, you can select a Twitter username, a date range, and a
+                degree of separation, and see the resulting network of twitter mentions.
+                For example, selecting
+                <tt>esunhechoque</tt>, May 2, 2013, 1 day, and a degree
+                of 2 will show everyone this user mentioned in their tweets from that day, and everyone
+                THEY mentioned, as a graph.</p>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id=history-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>History Controls</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>Configure the search histroy options</p>
+
+               <p>The controls below affect how the app maintains and displays history records. 
+               Change the length of history that is maintained and how much is displayed here. 
+               Optionally clear the history in this session whenever desired. </p>
+            </div>
+
+
+            <div class=row style="margin-left: 20px">
+            <div class=col-md-6>
+                <div id=clearSend class="btn btn-success offset1">Clear  History</div>
+   <!--             <div id=clearRcv class="btn btn-success ">Clear Receiver History</div>   -->
+            </div> 
+
+                <div class=col-md-5>
+                    <!-- JQuery slider -->
+                    <h4>Display History Length</h4>
+                    <div id=history_length></div>
+                    <div id=history_length-label class=code></div>
+                </div>
+            </div>
+
+            <div class=modal-footer>
+                <a id=update-history class="btn btn-success offset1">Update</a>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>Twiter Mention With History</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#history-panel><span class="glyphicon glyphicon-info-sign"></span> History Controls</a>
+    </ul>
+</div>
+
+
+<!-- Create a fullscreen SVG element -->
+   <div class=row>
+        <div class=col-md-7>
+            <svg id=graph>
+                <rect style="height=70%" style="fill:silver;" />
+                 <g id="links"></g>
+                <g id="nodes"></g>
+            </svg>
+        </div>
+
+        <div class=col-md-5>
+            <h3>Tweet Sending History Chart </h3>
+            <p> This chart displays the most prolific tweeters organized by activity.  The 
+            number of entities displayed can be adjusted through the history control panel.</p>
+            <div id=historychart1>
+                    <rect  style="fill:gray;" />
+            </div>
+            <h3 style="margin-top: 50px">Tweet Receiving History Chart </h3>
+            <p> This chart displays the most popular targets (receivers) of tweeting activity organized by quantity of messages received.  The 
+            number of entities displayed can be adjusted through the history control panel.</p>
+            <div id=historychart2> 
+                    <rect  style="fill:gray;" /> 
+            </div>   
+
+        </div>
+    </div>
+
+<!-- Create an SVG element to represent the legend -->
+<svg id=legend height=100% style="position:fixed; top:100px; right:0px; pointer-events:none;"></svg>
+
+
+<!-- Create a drawer with the control panel in it -->
+<div id=control-panel>
+    <div class=container>
+        <div class=row>
+            <div class=col-md-3>
+                <!-- JQuery slider -->
+                <h4>Date</h4>
+                <div id=date></div>
+                <div id=date-label class=code></div>
+            </div>
+
+            <div class=col-md-3>
+                <!-- JQuery slider -->
+                <h4>Date range</h4>
+                <div id=range></div>
+                <div id=range-label class=code></div>
+            </div>
+
+            <div class=col-md-3>
+                <h4>Central tweeter</h4>
+                <input id=center>
+            </div>
+
+            <div class=col-md-3>
+                <!-- JQuery spinner -->
+                <h4>Degree of separation</h4>
+                <input id=degree>
+            </div>
+            <div class=col-md-3>
+                    <label class=checkbox>
+                      <input type=checkbox id=usetext> Render text labels
+                    </label>
+            </div>
+            <div class=col-md-3>
+                    <label class=checkbox>
+                      <input type=checkbox id=clickfollow>  Center graph on clicked node
+                    </label>
+            </div>           
+        </div>
+
+        <div class=row>
+            <div class=col-md-3>
+                <div id=update class="btn btn-success offset1">Update</div>
+                <div id=animate class="btn btn-success ">Animate</div>
+            </div>
+             
+        </div>
+        <div class=row>
+                <spacer id="spacer1" type="vertical" height="20"></spacer>
+        </div>
+    </div>
+</div>
