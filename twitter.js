@@ -242,15 +242,17 @@ function updateGraph() {
             // the user may want to force re-centering on the graph by clicking a new center
             // directly.  Add this callback to always fire, then the method only takes action if
             // the "following" mode is set. 
-
+/**
             var node2 = svg.select("g#nodes")
                 .selectAll(".node")
                 .data(graph.nodes, function (d) { return d.tweet; })
+                .enter()
                 .on("click", function(d) {
+                        console.log('click was heard')
                         centerOnClickedGraphNode(d.tweet)
                 });
 
-
+**/
 
             // support two different modes, where circular nodes are drawn for each entity or for where the
             // sender name is used inside a textbox. if twitter.textmode = true, then render text
@@ -263,6 +265,7 @@ function updateGraph() {
                         .style("fill", "red")
                         .on("mouseover", function(d) {
                             loggedVisitToEntry(d)
+                            centerOnClickedGraphNode(d.tweet)
                         });
 
                     enter.transition()
