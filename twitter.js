@@ -77,7 +77,7 @@ twitter.getMongoDBInfo = function () {
     // server/database/collection to use. Hardcode to reduce chance for errors during demonstrations.
     return {
         server: 'localhost',
-        db:  'xdata',
+        db:  'year2',
         coll:  'twitter'
 
     };
@@ -155,7 +155,7 @@ function updateGraph() {
      twitter.ac.logSystemActivity('Kitware Twitter Mention -'+logText);
 
     $.ajax({
-        url: "service/tweeters/" + twitter.host + "/xdata/twitter_mentions",
+        url: "service/tweeters/" + twitter.host + "/year2/twitter_mentions",
         data: data,
         dataType: "json",
         success: function (response) {
@@ -463,9 +463,12 @@ window.onload = function () {
         twitter.history_length = $("#history_length");
 
         twitter.date.slider({
-            min: new Date("September 24, 2012").getTime(),
-            max: new Date("May 31, 2013").getTime(),
-            value: new Date("September 24, 2012").getTime(),
+            //min: new Date("September 24, 2012").getTime(),
+            //max: new Date("May 31, 2013").getTime(),
+            //value: new Date("September 24, 2012").getTime(),
+            min: new Date("March 3, 2014").getTime(),
+            max: new Date("March 7, 2014").getTime(),
+            value: new Date("March 3, 2014").getTime(),
             step: 86400,
             slide: function (evt, ui) {
                 d3.select("#date-label")
@@ -480,8 +483,8 @@ window.onload = function () {
 
         twitter.range.slider({
             min: 1,
-            max: 6 * 7,
-            value: 14,
+            max: 7,
+            value: 1,
             slide: function (evt, ui) {
                 d3.select("#range-label")
                     .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
@@ -493,13 +496,14 @@ window.onload = function () {
         });
         twitter.range.slider("value", twitter.range.slider("value"));
 
-        twitter.center.val("rashidalfowzan")
+        //twitter.center.val("rashidalfowzan")
+        twitter.center.val("monica_nino")
 
         twitter.degree.spinner({
             min: 1,
-            max: 10
+            max: 5
         });
-        twitter.degree.spinner("value", 3);
+        twitter.degree.spinner("value", 1);
 
         // ---- setup controls for the history ------
 
@@ -624,6 +628,21 @@ function centerOnClickedHistoryRecord(item) {
                     el: elem, 
                     data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
                 })
+                // .on("mouseover", function(event, item) {
+                //     vegaview.update({
+                //         props: "hover",
+                //         items: item.cousin(1)
+                //     })
+                // })
+                // .on("mouseout", function(event, item) {
+                //     // reset cousin item, using animated transition
+                //      vegaview.update({
+                //         props: "update",
+                //         items: item.cousin(1),
+                //         duration: 250,
+                //         ease: "linear"
+                //     })
+                //  })
                 .update()
                 .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
                  });
