@@ -17,7 +17,7 @@ twitter.degree = null;
 twitter.history_length = null;
 twitter.host = null;
 twitter.ac = null;
-twitter.textmode = false;
+twitter.textmode = true;
 
 //should user click of node make this node the new center?
 twitter.clickCausesFollow = false;
@@ -432,6 +432,10 @@ window.onload = function () {
 
     //tangelo.requireCompatibleVersion("0.2");
     //twitter.ac.logUILayout('Kitware Twiter Browsing', 'WindowOne', true, 1,1,1,1);
+
+    // make the panel open & close over data content
+
+    $('#control-panel').controlPanel()
 
     d3.json("defaults.json", function (err, defaults) {
         defaults = defaults || {};
