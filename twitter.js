@@ -17,7 +17,7 @@ twitter.degree = null;
 twitter.history_length = null;
 twitter.host = null;
 twitter.ac = null;
-twitter.textmode = false;
+twitter.textmode = true;
 
 //should user click of node make this node the new center?
 twitter.clickCausesFollow = false;
@@ -155,7 +155,7 @@ function updateGraph() {
      twitter.ac.logSystemActivity('Kitware Twitter Mention -'+logText);
 
     $.ajax({
-        url: "service/tweeters/" + twitter.host + "/year2/twitter_mentions",
+        url: "service/tweeters/" + twitter.host + "/year2/twitter_mentions_v2",
         data: data,
         dataType: "json",
         success: function (response) {
@@ -430,7 +430,9 @@ function twitterDistanceFunction( distance) {
 window.onload = function () {
     "use strict";
 
-    tangelo.requireCompatibleVersion("0.2");
+     $('#control-panel').controlPanel()
+     
+    //tangelo.requireCompatibleVersion("0.2");
     //twitter.ac.logUILayout('Kitware Twiter Browsing', 'WindowOne', true, 1,1,1,1);
 
     tangelo.defaults("defaults.json", function (defaults) {
@@ -467,7 +469,7 @@ window.onload = function () {
             //max: new Date("May 31, 2013").getTime(),
             //value: new Date("September 24, 2012").getTime(),
             min: new Date("March 3, 2014").getTime(),
-            max: new Date("March 7, 2014").getTime(),
+            max: new Date("March 15, 2014").getTime(),
             value: new Date("March 3, 2014").getTime(),
             step: 86400,
             slide: function (evt, ui) {
