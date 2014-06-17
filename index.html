@@ -125,7 +125,7 @@
 
             <div class=modal-footer>
                 <a id=update-history class="btn btn-success offset1">Update</a>
-                <a class="btn btn-default" data-dismiss=modal>OK</a>
+                <a class="btn btn-default" data-dismiss=modal>Close</a>
             </div>
         </div>
     </div>
@@ -155,15 +155,17 @@
         </div>
 
         <div class=col-md-5>
-            <h3>Tweet Sending History Chart </h3>
+            <h3>Tweet Sender History Chart </h3>
             <p> This chart displays the most prolific tweeters organized by activity.  The 
-            number of entities displayed can be adjusted through the history control panel.</p>
+            number of entities displayed can be adjusted through the history control panel. Hover over the
+            top of a column to view the tweeter user id.  Click on a displayed ID to center the social graph on this tweeter. </p>
             <div id=historychart1>
                     <rect  style="fill:gray;" />
             </div>
             <h3 style="margin-top: 50px">Tweet Receiving History Chart </h3>
             <p> This chart displays the most popular targets (receivers) of tweeting activity organized by quantity of messages received.  The 
-            number of entities displayed can be adjusted through the history control panel.</p>
+            number of entities displayed can be adjusted through the history control panel.  Hover over the
+            top of a column to view the tweeter user id.  Click on a displayed ID to center the social graph on this receiver. </p>
             <div id=historychart2> 
                     <rect  style="fill:gray;" /> 
             </div>   
