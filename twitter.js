@@ -23,7 +23,8 @@ twitter.textmode = true;
 twitter.clickCausesFollow = false;
 
 var LoggingLocation = "http://xd-draper.xdata.data-tactics-corp.com:1337"
-twitter.testMode = true;
+// testmode = false means logging is on
+twitter.testMode = false;
 twitter.echoLogsToConsole = true;
 
 twitter.ac = new activityLogger().echo(twitter.echoLogsToConsole).testing(twitter.testMode);
