@@ -430,10 +430,11 @@ function twitterDistanceFunction( distance) {
 window.onload = function () {
     "use strict";
 
-    tangelo.requireCompatibleVersion("0.2");
+    //tangelo.requireCompatibleVersion("0.2");
     //twitter.ac.logUILayout('Kitware Twiter Browsing', 'WindowOne', true, 1,1,1,1);
 
-    tangelo.defaults("defaults.json", function (defaults) {
+    d3.json("defaults.json", function (err, defaults) {
+        defaults = defaults || {};
         twitter.host = defaults.host || "localhost";
 
         svg = d3.select("svg");
@@ -643,7 +644,6 @@ function centerOnClickedHistoryRecord(item) {
                 //         ease: "linear"
                 //     })
                 //  })
->>>>>>> 7d9dec331d38dc117532562cf7af845ec1544b3e
                 .update()
                 .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
                  });
@@ -666,7 +666,7 @@ function updateHistoryLength(){
         };
         console.log("history length in JS is",data.displayLength)
     $.ajax({
-        url: "service/tweeters/" + twitter.host + "/xdata/twitter_mentions",
+        url: "service/tweeters/" + twitter.host + "/xdata/twitter_mentions_v2",
         data: data,
         dataType: "json",
         success: function (response) {
