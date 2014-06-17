@@ -155,7 +155,7 @@ function updateGraph() {
      twitter.ac.logSystemActivity('Kitware Twitter Mention -'+logText);
 
     $.ajax({
-        url: "service/tweeters/" + twitter.host + "/year2/twitter_mentions",
+        url: "service/tweeters/" + twitter.host + "/year2/twitter_mentions_v2",
         data: data,
         dataType: "json",
         success: function (response) {
@@ -434,7 +434,6 @@ window.onload = function () {
     //twitter.ac.logUILayout('Kitware Twiter Browsing', 'WindowOne', true, 1,1,1,1);
 
     // make the panel open & close over data content
-
     $('#control-panel').controlPanel()
 
     d3.json("defaults.json", function (err, defaults) {
@@ -472,7 +471,7 @@ window.onload = function () {
             //max: new Date("May 31, 2013").getTime(),
             //value: new Date("September 24, 2012").getTime(),
             min: new Date("March 3, 2014").getTime(),
-            max: new Date("March 7, 2014").getTime(),
+            max: new Date("March 15, 2014").getTime(),
             value: new Date("March 3, 2014").getTime(),
             step: 86400,
             slide: function (evt, ui) {

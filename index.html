@@ -13,12 +13,19 @@
 
 <script src=twitter.js></script>
 
-<!-- Styling for UI elements -->
-<link href=cache/bootstrap.min.css rel=stylesheet type=text/css>
 <link href=cache/jquery-ui.css rel=stylesheet>
+
+<!-- Styling for UI elements 
+<link href=cache/bootstrap.min.css rel=stylesheet type=text/css>
 <link href=cache/bootstrap-glyphicons.css rel=stylesheet>
 <script src=cache/bootstrap.min.js></script>
+-->
+
 <link rel="shortcut icon" href=/img/tangelo.ico>
+
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
 
 <!--
 <script src="http://trifacta.github.io/vega/lib/d3.v3.min.js"></script>
@@ -32,6 +39,7 @@
 <style>
     html, body {
         height: 100%;
+        background-color: white;
     }
 
     body {
@@ -43,6 +51,13 @@
         padding-bottom: 20px;
     }
 
+    p {
+        color: gray;
+    }
+
+    h3 {
+        color: gray;
+    }
     #map img {
         max-width: none;
     }
@@ -116,7 +131,7 @@
     </div>
 </div>
 
-<div class="navbar navbar-default navbar-fixed-top">
+<div class="navbar navbar-default navbar-fixed-top" >
     <div class=navbar-header>
         <a class=navbar-brand href=/examples>Tangelo</a>
     </div>
@@ -161,7 +176,7 @@
 
 
 <!-- Create a drawer with the control panel in it -->
-<div id=control-panel>
+<div id=control-panel style="opacity: 0.8">
     <div class=container>
         <div class=row>
             <div class=col-md-3>
