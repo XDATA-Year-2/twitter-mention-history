@@ -99,6 +99,9 @@ class TweeterHistory:
 
     # return the whole list so it can be rendered in a vis or processed some other way. 
     def getHistoryList(self):
+        if len(self.sessionname)==0:
+            # initialize storage first time if it hasn't been opened already
+            self.openHistoryStorage()
         historyList = []
         # we project away the Id field so it doesn't get copied through to VEGA and waste transfer capacity
         # the simple query below worked before we used limits and sort.  it is more complicated to do the sort:
