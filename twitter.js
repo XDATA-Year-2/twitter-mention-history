@@ -505,9 +505,10 @@ window.onload = function () {
         //twitter.center.val("rashidalfowzan")
         twitter.center.val("monica_nino")
 
+        // clamp to 2 for South American dataset
         twitter.degree.spinner({
             min: 1,
-            max: 5
+            max: 2
         });
         twitter.degree.spinner("value", 1);
 

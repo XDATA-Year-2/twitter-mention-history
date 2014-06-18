@@ -14,7 +14,8 @@ import bson.json_util
 # during development, force the external file to be reloaded every time.  This declaration is for the history object and
 # supporting utilities
 
-import queryHistory
+# we are using the inline one in this file instead of the external one (which is out of date)
+#import queryHistory
 
 
 
@@ -41,26 +42,38 @@ class TweeterHistory:
         self.sessionname = ''   # to be initialized at instantiation time
         self.mongoconnection = 0    # connection object
         self.data_coll = 0                  # storage collection itself
+        self.openHistoryStorage()
 
 
-    def openHistoryStorage(self):
+    def openHistoryStorage(self,):
         #specialize the session name depending on when this was started and its sender/receiver settings
         if self.senderIndexed:
             direction = 'source'
         else:
             direction = 'target'
         self.sessionname  = 'mentionHistory_' + time.strftime('%m%d%y')+direction+'_'+time.strftime('%H%M%S')
-        collectionNameNoDashes = string.replace(self.sessionname,'-','_')
-        print "history opening collection name: ",collectionNameNoDashes
-        try:
-            self.mongoconnection = Connection('localhost', 27017)
+        self.collectionNameNoDashes = string.replace(self.sessionname,'-','_')
+        print "history opening collection name: ",self.collectionNameNoDashes
+        # try:
+        #     self.mongoconnection = connection
+        #     #self.mongoconnection = Connection('localhost', 27017)
+        #     db = self.mongoconnection[self.mongodbname]
+        #     self.data_coll = db[self.collectionNameNoDashes]
+        #     self.sessionname = self.collectionNameNoDashes
+        #     # this is the first entry so, start with iterations = 0
+        #     self.data_coll.insert({'iterations':0})
+        # except (IOError,ValueError):
+        #     print "History: Error. unable to use existing mongo connection.. "
+
+    # the history object uses the connection that its client opens.  this will change during execution, so this
+    # method is always called before operations that require database updates.
+
+    def setMongoConnection(self,connection):
+        if (connection):
+            self.mongoconnection = connection
             db = self.mongoconnection[self.mongodbname]
-            self.data_coll = db[collectionNameNoDashes]
-            self.sessionname = collectionNameNoDashes
-            # this is the first entry so, start with iterations = 0
-            self.data_coll.insert({'iterations':0})
-        except (IOError,ValueError):
-            print "History: Error. unable to open mongo connection.. "
+            self.data_coll = db[self.collectionNameNoDashes]
+            self.sessionname = self.collectionNameNoDashes
 
     # how long should a character be saved before it is removed because it is too old
     def setMaxHistoryLength(self,maxHistory):
@@ -83,22 +96,26 @@ class TweeterHistory:
 
     # keep track of the query iterations, so each entry is assigned a value suitable for its position in the history.
     # the age values can be used to prune the history when an entry is too old.
-    def cycle(self):
+    def cycle(self,conn):
         # check for any expired entries and remove them 
+        self.setMongoConnection(conn)
         self.data_coll.update( {'iterations': {'$exists': 1}}, { '$inc': { 'iterations': 1 } } )
-        self.clearOldHistoryRecords()
+        self.clearOldHistoryRecords(conn)
 
-    def getCharacterCount(self):
+    def getCharacterCount(self,conn):
+        self.setMongoConnection(conn)
         return self.data_coll.find({'storeTime': {'$exists': True}}).count()
 
-    def printState(self):
+    def printState(self,conn):
+        self.setMongoConnection(conn)
         print "characters:"
         iterator = self.data_coll.find({'storeTime': {'$exists': 1}})
         for record in iterator:
             print record
 
     # return the whole list so it can be rendered in a vis or processed some other way. 
-    def getHistoryList(self):
+    def getHistoryList(self, conn):
+        self.setMongoConnection(conn)
         if len(self.sessionname)==0:
             # initialize storage first time if it hasn't been opened already
             self.openHistoryStorage()
@@ -121,16 +138,19 @@ class TweeterHistory:
 
     # clear out all the data structures and prepare to start again, except the configuration 
     # variables (maxHistoryLength, etc.) are maintained.
-    def reset(self):
+    def reset(self,conn):
+        self.setMongoConnection(conn)
+        self.data_coll.insert({'iterations':0})
         self.data_coll.remove({'storeTime':{'$exists':1}})
-        self.data_coll.update({'iterations': {'$exists': 1}} , { 'iterations': 0 } )
+        #self.data_coll.update({'iterations': {'$exists': 1}} , { 'iterations': 0 } )
 
     # this method implements a rolling-history architecture where the records
     # are kept only for so long.  During each cycle event (when time moves) the list is
     # checked to see if anyone should be removed because they haven't been seen in quite
     # a while.    
-    def clearOldHistoryRecords(self):
+    def clearOldHistoryRecords(self,conn):
         # return only records that are history records.  
+        self.setMongoConnection(conn)
         iterator = self.data_coll.find({'storeTime': {'$exists': 1}})
         for record in iterator:
             if record['storeTime'] > self.maxHistoryLength:
@@ -138,7 +158,8 @@ class TweeterHistory:
                 self.data_coll.delete(record)
 
     # this method is invoked when a new query response should be recorded.  
-    def addRecord(self,response):
+    def addRecord(self,response,conn):
+        self.setMongoConnection(conn)
         if len(self.sessionname)==0:
             # initialize storage first time if it hasn't been opened already
             self.openHistoryStorage()
@@ -187,18 +208,41 @@ recorders = dict()
 #recorders['source'] = queryHistory.TweeterHistory()
 #recorders['target'] = queryHistory.TweeterHistory()
 recorders['source'] = TweeterHistory()
+recorders['source'].openHistoryStorage()
 recorders['source'].setMaxHistoryLength(20)
 recorders['target'] = TweeterHistory()
 recorders['target'].setIndexByTarget()
 recorders['target'].setMaxHistoryLength(20)
+recorders['target'].openHistoryStorage()
 queryCount = 0
+firsttime = True
+
 
 #
 
 def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None,actionCommand=None,displayLength=None):
     global queryCount
     global recorders
+    global firsttime
     response = {}
+
+
+     # Get a handle to the database collection.
+    try:
+        connection = pymongo.Connection(host)
+        db = connection[database]
+        c = db[collection]
+    except pymongo.errors.AutoReconnect as e:
+        response["error"] = "database error: %s" % (e.message)
+        return response
+
+    if  firsttime:
+        recorders['source'].reset(connection)
+        recorders['target'].reset(connection)
+        firsttime = False
+    else:
+        recorders['source'].setMongoConnection(connection)
+        recorders['target'].setMongoConnection(connection)
 
     # the calling program may have specified an action command to reconfigure the history
     # records or perform some other event-based activity.  Examime the command argument
@@ -209,8 +253,8 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         print "received actionCommand: ",actionCommand
         # action requested was to clear the history
         if actionCommand=='clearHistory':
-            recorders['source'].reset()
-            recorders['target'].reset()
+            recorders['source'].reset(connection)
+            recorders['target'].reset(connection)
             return response
       # request was to change the display length (the topK value). Value was passed as argument
         if actionCommand=='setHistoryDisplayLength':
@@ -260,14 +304,7 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         response["error"] = "argument 'end_time' must be in YYYY-MM-DD format"
         return response
 
-    # Get a handle to the database collection.
-    try:
-        connection = pymongo.Connection(host)
-        db = connection[database]
-        c = db[collection]
-    except pymongo.errors.AutoReconnect as e:
-        response["error"] = "database error: %s" % (e.message)
-        return response
+   
 
     # Start a set of all interlocutors we're interested in - that includes the
     # center tweeter.
@@ -298,8 +335,8 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         #print 'returned ',results.count(),' tweeters'
         for tweeter in results:
             # record this query result and compile the running history of tweeters
-            recorders['source'].addRecord(tweeter)
-            recorders['target'].addRecord(tweeter)
+            recorders['source'].addRecord(tweeter,connection)
+            recorders['target'].addRecord(tweeter,connection)
             #recorders['source'].printState()
         results.rewind()
 
@@ -344,8 +381,8 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     talkers = [{"tweet": n, "distance": distance[n]} for n in talkers]
 
     # query the history logger to get a list of top tweeters
-    historyLog = recorders['source'].getHistoryList()
-    targetHistoryLog = recorders['target'].getHistoryList()
+    historyLog = recorders['source'].getHistoryList(connection)
+    targetHistoryLog = recorders['target'].getHistoryList(connection)
     # Stuff the graph data into the response object, and return it.
     response["result"] = { "nodes": talkers,
                            "edges": edges,
@@ -357,9 +394,9 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
 
     # tell the history object the cycle has ended
     #recorders['source'].printState()
-    recorders['source'].cycle()
+    recorders['source'].cycle(connection)
     #recorders['target'].printState()
-    recorders['target'].cycle()
+    recorders['target'].cycle(connection)
 
     connection.close()
 
