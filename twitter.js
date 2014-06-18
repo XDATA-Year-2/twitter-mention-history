@@ -29,7 +29,7 @@ twitter.echoLogsToConsole = true;
 
 twitter.ac = new activityLogger().echo(twitter.echoLogsToConsole).testing(twitter.testMode);
 ac = twitter.ac
-twitter.ac.registerActivityLogger(LoggingLocation, "Kitware_Twitter_Mention", "2.0");
+twitter.ac.registerActivityLogger(LoggingLocation, "Kitware_Twitter_Mention", "3.0");
 
 
 twitter.dayColor = d3.scale.category10();
