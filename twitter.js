@@ -28,6 +28,7 @@ twitter.testMode = false;
 twitter.echoLogsToConsole = true;
 
 twitter.ac = new activityLogger().echo(twitter.echoLogsToConsole).testing(twitter.testMode);
+ac = twitter.ac
 twitter.ac.registerActivityLogger(LoggingLocation, "Kitware_Twitter_Mention", "2.0");
 
 
@@ -614,8 +615,25 @@ var indexlist;
 var minarray;
 var maxarray;
 
+
+function logClickOnHistoryEntry(item) {
+        //console.log("click of entry for ",d.user)
+        twitter.ac.logUserActivity("clicked history entity to center: "+item.text, "historySelect", twitter.ac.WF_EXPLORE);
+}
+
+function logMouseEnterOnHistoryTag(item){
+      console.log("mouse enter of history for ",item.text)
+      twitter.ac.logUserActivity("mouse enter (hover) for history entry for: "+item.text, "historyEnter", twitter.ac.WF_EXPLORE);
+}
+
+function logMouseExitOnHistoryTag(item){
+      console.log("mouse exit of history for ",item.text)
+      twitter.ac.logUserActivity("mouse exit (hover) for history entry for: "+item.text, "historyEnter", twitter.ac.WF_EXPLORE);
+}
+
 function centerOnClickedHistoryRecord(item) {
-    console.log("centering on:",item.text)
+    //console.log("centering on:",item.text)
+    logClickOnHistoryEntry(item)
       // assign the new center of the mentions graph
       twitter.center.val(item.text)
       // remove the previous graph
@@ -625,7 +643,11 @@ function centerOnClickedHistoryRecord(item) {
       updateGraph(true)
 }
 
- // bind data  with the vega spec
+ // bind data  with the vega spec.  We are also catching the mouse enter and mouse exit events on the
+ // vega elements in order to generate instrumentation for the logging API.  The way the spec is currently
+ // defined, there are rectangles and their are labels.  They are cousins, but we aren't sure how, so the 
+ // mouse events tests if the text attribute is defined in order to only log events against the labels for now.
+
     function parseVegaSpec(spec, dynamicData, elem) {
             //console.log("parsing vega spec"); 
        vg.parse.spec(spec, function(chart) { 
@@ -633,21 +655,16 @@ function centerOnClickedHistoryRecord(item) {
                     el: elem, 
                     data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
                 })
-                // .on("mouseover", function(event, item) {
-                //     vegaview.update({
-                //         props: "hover",
-                //         items: item.cousin(1)
-                //     })
-                // })
-                // .on("mouseout", function(event, item) {
-                //     // reset cousin item, using animated transition
-                //      vegaview.update({
-                //         props: "update",
-                //         items: item.cousin(1),
-                //         duration: 250,
-                //         ease: "linear"
-                //     })
-                //  })
+                .on("mouseover", function(event, item) {
+                        if (typeof item.text != "undefined") {
+                            logMouseEnterOnHistoryTag(item)
+                        }
+                })
+                .on("mouseout", function(event, item) {
+                        if (typeof item.text != "undefined") {
+                            logMouseExitOnHistoryTag(item)
+                        }                   
+                 })
                 .update()
                 .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
                  });

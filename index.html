@@ -3,12 +3,14 @@
 
 
 <!-- <script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script> -->
-<script src=cache/jquery-1.9.1.min.js></script>
+<!-- <script src=cache/jquery-1.9.1.min.js></script> -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 <script src=cache/jquery-ui.min.js></script>
 <script src=cache/d3.v3.min.js charset=utf-8></script>
 <script src=/js/tangelo.min.js></script>
 
 <!-- Driver script for this app -->
+
 <script src=draper.activity_logger-2.0.js></script>
 
 <script src=twitter.js></script>
@@ -67,7 +69,7 @@
 
 
 
-<div id=info-panel class="modal fade">
+<div id=info-panel class="modal fade draper" data-wf="1"  data-description="info panel">
     <div class=modal-dialog>
         <div class=modal-content>
             <div class=modal-header>
@@ -93,7 +95,7 @@
 </div>
 
 
-<div id=history-panel class="modal fade">
+<div id=history-panel class="modal fade draper" data-wf="2" data-description="history panel">
     <div class=modal-dialog>
         <div class=modal-content>
             <div class=modal-header>
@@ -111,21 +113,21 @@
 
             <div class=row style="margin-left: 20px">
             <div class=col-md-6>
-                <div id=clearSend class="btn btn-success offset1">Clear  History</div>
+                <div id=clearSend class="btn btn-success offset1 draper" data-wf="3" data-desc="clear history button clicked" data-activity="clearHistory">Clear  History</div>
    <!--             <div id=clearRcv class="btn btn-success ">Clear Receiver History</div>   -->
             </div> 
 
                 <div class=col-md-5>
                     <!-- JQuery slider -->
                     <h4>Display History Length</h4>
-                    <div id=history_length></div>
+                    <div id=history_length class="draper" data-wf="3" data-activity="HistoryLength" data-desk="change history display length"></div>
                     <div id=history_length-label class=code></div>
                 </div>
             </div>
 
             <div class=modal-footer>
                 <a id=update-history class="btn btn-success offset1">Update</a>
-                <a class="btn btn-default" data-dismiss=modal>Close</a>
+                <a class="btn btn-default draper"  data-wf="3"  data-activity="historyWindowClose" data-desc="history window closed" data-dismiss=modal>Close</a>
             </div>
         </div>
     </div>
