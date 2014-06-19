@@ -265,7 +265,7 @@ function updateGraph() {
                         .attr("r", 5)
                         .style("opacity", 0.0)
                         .style("fill", "red")
-                        .on("mouseover", function(d) {
+                        .on("click", function(d) {
                             loggedVisitToEntry(d)
                             centerOnClickedGraphNode(d.tweet)
                         });
@@ -320,6 +320,8 @@ function updateGraph() {
                         return d.tweet;
                     })
 
+                    // use the default cursor so the text doesn't look editable
+                    .style('cursor', 'default')
 
                     .datum(function (d) {
                         // Adjoin the bounding box to the element's bound data.
@@ -327,9 +329,12 @@ function updateGraph() {
                     });
 
                 enter.insert("rect", ":first-child")
-                    .attr("width", function (d) { return d.bbox.width; })
-                    .attr("height", function (d) { return d.bbox.height; })
-                    .attr("y", function (d) { return -0.75 * d.bbox.height; })
+                    .attr("width", function (d) { return d.bbox.width + 4; })
+                    .attr("height", function (d) { return d.bbox.height + 4; })
+                    .attr("y", function (d) { return d.bbox.y - 2; })
+                    .attr("x", function (d) { return d.bbox.x - 2; })
+                    .attr('rx', 4)
+                    .attr('ry', 4)
                     .style("stroke", function (d) {
                         return color(d.distance);
                     })
@@ -652,19 +657,28 @@ function centerOnClickedHistoryRecord(item) {
     function parseVegaSpec(spec, dynamicData, elem) {
             //console.log("parsing vega spec"); 
        vg.parse.spec(spec, function(chart) { 
-            vegaview = chart({
+            var vegaview = chart({
                     el: elem, 
                     data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
                 })
                 .on("mouseover", function(event, item) {
-                        if (typeof item.text != "undefined") {
-                            logMouseEnterOnHistoryTag(item)
+                        if (item.mark.marktype === 'rect') {
+                            vegaview.update({
+                                props: 'hover0',
+                                items: item.cousin(1)
+                            });
+                            logMouseEnterOnHistoryTag(item.cousin(1))
+                        } else {
                         }
                 })
                 .on("mouseout", function(event, item) {
-                        if (typeof item.text != "undefined") {
-                            logMouseExitOnHistoryTag(item)
-                        }                   
+                        if (item.mark.marktype === 'rect') {
+                            vegaview.update({
+                                props: 'update0',
+                                items: item.cousin(1)
+                            });
+                            logMouseExitOnHistoryTag(item.cousin(1))
+                        }
                  })
                 .update()
                 .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
