@@ -681,8 +681,12 @@ function centerOnClickedHistoryRecord(item) {
                         }
                  })
                 .update()
-                .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
-                 });
+                .on("click", function(event, item) {
+                    if (item.mark.marktype === 'rect') {
+                        centerOnClickedHistoryRecord(item.cousin(1));
+                    }
+                }) ;
+        });
    }
 
 
