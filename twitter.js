@@ -18,14 +18,15 @@ twitter.history_length = null;
 twitter.host = null;
 twitter.ac = null;
 twitter.textmode = true;
+twitter.lastResponseLength = 0;
 
 //should user click of node make this node the new center?
 twitter.clickCausesFollow = false;
 
 var LoggingLocation = "http://xd-draper.xdata.data-tactics-corp.com:1337"
 // testmode = false means logging is on
-twitter.testMode = false;
-twitter.echoLogsToConsole = true;
+twitter.testMode = true;
+twitter.echoLogsToConsole = false;
 
 twitter.ac = new activityLogger().echo(twitter.echoLogsToConsole).testing(twitter.testMode);
 ac = twitter.ac
@@ -180,7 +181,12 @@ function updateGraph() {
                 return;
             }
 
+            // save the length of the response to use it to slow animation down when the 
+            // graph is large
+            twitter.lastResponseLength = response.result.nodes.length
+            
             //console.log('data returned:',response.result)
+            //console.log('length returned:',response.result.nodes.length)
 
             // Save the last iteration of node data, so we can transfer the
             // positions to the new iteration.
@@ -392,6 +398,7 @@ function toggleAnimation() {
     "use strict";
 
     var anim, update;
+    var graphAdjustTime, baseDelayTime;
     // log action
 
     anim = d3.select("#animate");
@@ -404,8 +411,13 @@ function toggleAnimation() {
         update.attr("disabled", true);
         twitter.ac.logUserActivity("user enabled animation", "animation", twitter.ac.WF_EXPLORE);
 
-        // slowed down the animation from 1.5x to 3.0x 
-        timeout = setInterval(advanceTimer, transition_time * 3.0);
+        // slowed down the animation from 1.5x to 5.0x  and adding a component to delay for larger graphs
+        baseDelayTime = transition_time *5.0
+        graphAdjustTime = (twitter.lastResponseLength * 20);
+        if  (isNaN(graphAdjustTime)) { graphAdjustTime = 0}
+        //console.log(graphAdjustTime)
+
+        timeout = setInterval(advanceTimer, parseInt(baseDelayTime + graphAdjustTime));
     } else {
         anim.text("Animate")
             .classed("btn-success", true)
@@ -467,6 +479,7 @@ window.onload = function () {
         twitter.center = $("#center");
         twitter.degree = $("#degree");
         twitter.history_length = $("#history_length");
+        twitter.history_storage_length = $("#history_storage_length");
 
         twitter.date.slider({
             //min: new Date("September 24, 2012").getTime(),
@@ -533,6 +546,25 @@ window.onload = function () {
             }
         });
         twitter.history_length.slider("value", twitter.history_length.slider("value"));
+
+
+      twitter.history_storage_length.slider({
+        min: 10,
+        max: 100,
+        value: 50,
+        slide: function (evt, ui) {
+            d3.select("#history_storage_length-label")
+                .text('keep history for '+ui.value+ ' iterations');
+        },
+        change: function (evt, ui) {
+            d3.select("history_storage_length_label")
+                .text(ui.value);
+            updateHistoryStorageLength();
+            }
+        });
+        twitter.history_storage_length.slider("value", twitter.history_storage_length.slider("value"));
+
+
 
         d3.select("#update-history")
             .on("click", updateGraph);         
@@ -623,12 +655,12 @@ function logClickOnHistoryEntry(item) {
 }
 
 function logMouseEnterOnHistoryTag(item){
-      console.log("mouse enter of history for ",item.text)
+      //console.log("mouse enter of history for ",item.text)
       twitter.ac.logUserActivity("mouse enter (hover) for history entry for: "+item.text, "historyEnter", twitter.ac.WF_EXPLORE);
 }
 
 function logMouseExitOnHistoryTag(item){
-      console.log("mouse exit of history for ",item.text)
+      //console.log("mouse exit of history for ",item.text)
       twitter.ac.logUserActivity("mouse exit (hover) for history entry for: "+item.text, "historyEnter", twitter.ac.WF_EXPLORE);
 }
 
@@ -698,7 +730,22 @@ function updateHistoryLength(){
     });
 }
 
-
+function updateHistoryStorageLength() {
+      data = {
+            actionCommand: 'setHistoryStorageLength',
+            storageLength: parseInt(twitter.history_storage_length.slider("value"))
+        };
+        console.log("history storage length in JS is",data.storageLength)
+    $.ajax({
+        url: "service/tweeters/" + twitter.host + "/xdata/twitter_mentions_v2",
+        data: data,
+        dataType: "json",
+        success: function (response) {
+            //drawHistoryChart(response.result.history,"#historychart1")
+            //drawHistoryChart(response.result.targetHistory,"#historychart2")
+        }
+    });
+}
 
 function drawHistoryChart(data,elementToDraw) {
     "use strict";

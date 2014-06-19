@@ -28,6 +28,7 @@ import json
 from bson import ObjectId
 from pymongo import Connection
 import string
+import random
 
 
 class TweeterHistory:
@@ -51,7 +52,9 @@ class TweeterHistory:
             direction = 'source'
         else:
             direction = 'target'
-        self.sessionname  = 'mentionHistory_' + time.strftime('%m%d%y')+direction+'_'+time.strftime('%H%M%S')
+        # append random number to the collection name to avoid conflicts of two sessions opened simultaneously
+        uniquevalue = random.randint(1,50)
+        self.sessionname  = 'mentionHistory_' + time.strftime('%m%d%y')+direction+'_'+time.strftime('%H%M%S')+'_'+str(uniquevalue)
         self.collectionNameNoDashes = string.replace(self.sessionname,'-','_')
         print "history opening collection name: ",self.collectionNameNoDashes
         # try:
@@ -74,6 +77,7 @@ class TweeterHistory:
             db = self.mongoconnection[self.mongodbname]
             self.data_coll = db[self.collectionNameNoDashes]
             self.sessionname = self.collectionNameNoDashes
+      
 
     # how long should a character be saved before it is removed because it is too old
     def setMaxHistoryLength(self,maxHistory):
@@ -154,8 +158,8 @@ class TweeterHistory:
         iterator = self.data_coll.find({'storeTime': {'$exists': 1}})
         for record in iterator:
             if record['storeTime'] > self.maxHistoryLength:
-                print 'removing old record: ', record['tweeter']
-                self.data_coll.delete(record)
+                #print 'removing old record: ', record['tweeter']
+                self.data_coll.remove(record)
 
     # this method is invoked when a new query response should be recorded.  
     def addRecord(self,response,conn):
@@ -220,7 +224,7 @@ firsttime = True
 
 #
 
-def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None,actionCommand=None,displayLength=None):
+def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None,actionCommand=None,displayLength=None, storageLength=None):
     global queryCount
     global recorders
     global firsttime
@@ -250,17 +254,23 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     # rendering update
 
     if (actionCommand != None):
-        print "received actionCommand: ",actionCommand
+        #print "received actionCommand: ",actionCommand
         # action requested was to clear the history
         if actionCommand=='clearHistory':
             recorders['source'].reset(connection)
             recorders['target'].reset(connection)
             return response
-      # request was to change the display length (the topK value). Value was passed as argument
+       # request was to change the display length (the topK value). Value was passed as argument
         if actionCommand=='setHistoryDisplayLength':
-            print "setting history display to ", int(displayLength)
+            #print "setting history display to ", int(displayLength)
             recorders['source'].setNumberOfValuesToReturn(int(displayLength))
             recorders['target'].setNumberOfValuesToReturn(int(displayLength))
+            return response
+        # request was to change the length that history records should be maintained
+        if actionCommand=='setHistoryStorageLength':
+            #print "setting history display to ", int(displayLength)
+            recorders['source'].setMaxHistoryLength(int(storageLength))
+            recorders['target'].setMaxHistoryLength(int(storageLength))
             return response
 
 
