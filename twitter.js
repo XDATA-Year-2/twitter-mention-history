@@ -8,6 +8,7 @@ var svg = null;
 var width = 0;
 var height = 0;
 var transition_time;
+var translate = [0, 0];
 
 var twitter = {};
 twitter.date = null;
@@ -451,15 +452,66 @@ window.onload = function () {
         defaults = defaults || {};
         twitter.host = defaults.host || "localhost";
 
-        svg = d3.select("svg");
+        width = $(window).width();
+        height = $(window).height();
+
+        svg = d3.select("svg")
+            .attr('width', width/2)
+            .attr('height', height);
+
+        svg.select('rect#overlay')
+            .attr('x', -1000)
+            .attr('y', -1000)
+            .attr('width', $(window).width() + 1000)
+            .attr('height', $(window).height() + 1000)
+            .style('fill-opacity', 1e-6)
+            .style('cursor', 'move')
+            .on('mousedown', function () {
+                var windowrect = d3.select('body')
+                        .append('svg')
+                            .attr('width', width)
+                            .attr('height', height)
+                            .style('position', 'absolute')
+                            .style('left', 0)
+                            .style('top', 0)
+                            .attr('id', 'overlay-rectangle')
+                        .append('rect')
+                            .attr('width', width)
+                            .attr('height', height)
+                            .style('fill-opacity', 1e-6)
+                            .style('cursor', 'move'),
+                    dragging=d3.mouse(windowrect.node());
+                windowrect
+                    .on('mouseup.forcemap', function () {
+                        dragging=false;
+                        d3.select('svg#overlay-rectangle').remove();
+                    })
+                    .on('mousemove.forcemap', function () {
+                        var position;
+                        if (dragging) {
+                            position = d3.mouse(windowrect.node());
+                            translate[0] += position[0] - dragging[0];
+                            translate[1] += position[1] - dragging[1];
+                            dragging = position;
+                            svg.attr('transform', 'translate(' + translate.join() + ')');
+                        }
+                    })
+                    .on('mouseout.forcemap', function () {
+                        dragging=false;
+                        d3.select('svg#overlay-rectangle').remove();
+
+                    });
+            });
+
+        svg = svg.select('#transform-group')
+            .attr('transform', 'translate(' + translate.join() + ')');
+
 
         // 3/2014: changed link strength down from charge(-500), link(100) to charge(-2000)
         // to reduce the node overlap but still allow some node wandering animation without being too stiff
 
         // 6/2014: divided width/2 to move to left side and leave room for history charts
 
-        width = $(window).width();
-        height = $(window).height();
         force = d3.layout.force()
             .charge(-2000)
             .linkDistance(100)
