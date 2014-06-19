@@ -59,15 +59,15 @@
               "font": {"field":"font"},
               "fontSize":{"value":20},
               "x": {"scale": "x", "field": "data.0"},
-              "dx": {"scale":"x", "band":true, "offset":-1},
+              "dx": {"scale":"x", "band":true, "mult":0.5},
               "dy": {"value":-5},
               "angle":{"value":0},
               "y": {"scale": "y", "field": "data.2"},
               "fill":{"value":"black"},
               "opacity": {"value": 0.0}
             },
-            "update" :   {"fill":{"value":"black"}, "opacity":{"value": 0}},
-            "hover" :  {"opacity": {"value":1.0}  }
+            "update0" :   {"fill":{"value":"black"}, "opacity":{"value": 0}},
+            "hover0" :  {"opacity": {"value":1.0}  }
           }
         }
       ]
