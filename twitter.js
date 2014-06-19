@@ -8,6 +8,7 @@ var svg = null;
 var width = 0;
 var height = 0;
 var transition_time;
+var translate = [0, 0];
 
 var twitter = {};
 twitter.date = null;
@@ -271,7 +272,7 @@ function updateGraph() {
                         .attr("r", 5)
                         .style("opacity", 0.0)
                         .style("fill", "red")
-                        .on("mouseover", function(d) {
+                        .on("click", function(d) {
                             loggedVisitToEntry(d)
                             centerOnClickedGraphNode(d.tweet)
                         });
@@ -326,25 +327,34 @@ function updateGraph() {
                         return d.tweet;
                     })
 
+                    // use the default cursor so the text doesn't look editable
+                    .style('cursor', 'default')
+
+                    // enable click to recenter
+                    .on("click", function(d) {
+                        loggedVisitToEntry(d);
+                        centerOnClickedGraphNode(d.tweet);
+                    })
 
                     .datum(function (d) {
                         // Adjoin the bounding box to the element's bound data.
                         d.bbox = this.getBBox();
+                        return d;
                     });
 
                 enter.insert("rect", ":first-child")
-                    .attr("width", function (d) { return d.bbox.width; })
-                    .attr("height", function (d) { return d.bbox.height; })
-                    .attr("y", function (d) { return -0.75 * d.bbox.height; })
+                    .attr("width", function (d) { return d.bbox.width + 4; })
+                    .attr("height", function (d) { return d.bbox.height + 4; })
+                    .attr("y", function (d) { return d.bbox.y - 2; })
+                    .attr("x", function (d) { return d.bbox.x - 2; })
+                    .attr('rx', 4)
+                    .attr('ry', 4)
                     .style("stroke", function (d) {
                         return color(d.distance);
                     })
                     .style("stroke-width", "2px")
                     .style("fill", "#e5e5e5")
-                    .style("fill-opacity", 0.8)
-                    .on("mouseover", function(d) {
-                        loggedVisitToEntry(d)
-                    });
+                    .style("fill-opacity", 0.8);
 
                 force.on("tick", function () {
                     link.attr("x1", function (d) { return d.source.x; })
@@ -454,15 +464,66 @@ window.onload = function () {
         defaults = defaults || {};
         twitter.host = defaults.host || "localhost";
 
-        svg = d3.select("svg");
+        width = $(window).width();
+        height = $(window).height();
+
+        svg = d3.select("svg")
+            .attr('width', width/2)
+            .attr('height', height);
+
+        svg.select('rect#overlay')
+            .attr('x', -1000)
+            .attr('y', -1000)
+            .attr('width', $(window).width() + 1000)
+            .attr('height', $(window).height() + 1000)
+            .style('fill-opacity', 1e-6)
+            .style('cursor', 'move')
+            .on('mousedown', function () {
+                var windowrect = d3.select('body')
+                        .append('svg')
+                            .attr('width', width)
+                            .attr('height', height)
+                            .style('position', 'absolute')
+                            .style('left', 0)
+                            .style('top', 0)
+                            .attr('id', 'overlay-rectangle')
+                        .append('rect')
+                            .attr('width', width)
+                            .attr('height', height)
+                            .style('fill-opacity', 1e-6)
+                            .style('cursor', 'move'),
+                    dragging=d3.mouse(windowrect.node());
+                windowrect
+                    .on('mouseup.forcemap', function () {
+                        dragging=false;
+                        d3.select('svg#overlay-rectangle').remove();
+                    })
+                    .on('mousemove.forcemap', function () {
+                        var position;
+                        if (dragging) {
+                            position = d3.mouse(windowrect.node());
+                            translate[0] += position[0] - dragging[0];
+                            translate[1] += position[1] - dragging[1];
+                            dragging = position;
+                            svg.attr('transform', 'translate(' + translate.join() + ')');
+                        }
+                    })
+                    .on('mouseout.forcemap', function () {
+                        dragging=false;
+                        d3.select('svg#overlay-rectangle').remove();
+
+                    });
+            });
+
+        svg = svg.select('#transform-group')
+            .attr('transform', 'translate(' + translate.join() + ')');
+
 
         // 3/2014: changed link strength down from charge(-500), link(100) to charge(-2000)
         // to reduce the node overlap but still allow some node wandering animation without being too stiff
 
         // 6/2014: divided width/2 to move to left side and leave room for history charts
 
-        width = $(window).width();
-        height = $(window).height();
         force = d3.layout.force()
             .charge(-2000)
             .linkDistance(100)
@@ -684,23 +745,36 @@ function centerOnClickedHistoryRecord(item) {
     function parseVegaSpec(spec, dynamicData, elem) {
             //console.log("parsing vega spec"); 
        vg.parse.spec(spec, function(chart) { 
-            vegaview = chart({
+            var vegaview = chart({
                     el: elem, 
                     data: {rows: dynamicData.rowdata, index: dynamicData.indexlist}
                 })
                 .on("mouseover", function(event, item) {
-                        if (typeof item.text != "undefined") {
-                            logMouseEnterOnHistoryTag(item)
+                        if (item.mark.marktype === 'rect') {
+                            vegaview.update({
+                                props: 'hover0',
+                                items: item.cousin(1)
+                            });
+                            logMouseEnterOnHistoryTag(item.cousin(1))
+                        } else {
                         }
                 })
                 .on("mouseout", function(event, item) {
-                        if (typeof item.text != "undefined") {
-                            logMouseExitOnHistoryTag(item)
-                        }                   
+                        if (item.mark.marktype === 'rect') {
+                            vegaview.update({
+                                props: 'update0',
+                                items: item.cousin(1)
+                            });
+                            logMouseExitOnHistoryTag(item.cousin(1))
+                        }
                  })
                 .update()
-                .on("click", function(event, item) { centerOnClickedHistoryRecord(item); }) ;
-                 });
+                .on("click", function(event, item) {
+                    if (item.mark.marktype === 'rect') {
+                        centerOnClickedHistoryRecord(item.cousin(1));
+                    }
+                }) ;
+        });
    }
 
 
