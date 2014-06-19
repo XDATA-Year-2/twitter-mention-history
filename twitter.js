@@ -323,9 +323,16 @@ function updateGraph() {
                     // use the default cursor so the text doesn't look editable
                     .style('cursor', 'default')
 
+                    // enable click to recenter
+                    .on("click", function(d) {
+                        loggedVisitToEntry(d);
+                        centerOnClickedGraphNode(d.tweet);
+                    })
+
                     .datum(function (d) {
                         // Adjoin the bounding box to the element's bound data.
                         d.bbox = this.getBBox();
+                        return d;
                     });
 
                 enter.insert("rect", ":first-child")
@@ -340,10 +347,7 @@ function updateGraph() {
                     })
                     .style("stroke-width", "2px")
                     .style("fill", "#e5e5e5")
-                    .style("fill-opacity", 0.8)
-                    .on("mouseover", function(d) {
-                        loggedVisitToEntry(d)
-                    });
+                    .style("fill-opacity", 0.8);
 
                 force.on("tick", function () {
                     link.attr("x1", function (d) { return d.source.x; })
