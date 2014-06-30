@@ -24,7 +24,8 @@ twitter.lastResponseLength = 0;
 //should user click of node make this node the new center?
 twitter.clickCausesFollow = false;
 
-var LoggingLocation = "http://xd-draper.xdata.data-tactics-corp.com:1337"
+//var LoggingLocation = "http://xd-draper.xdata.data-tactics-corp.com:1337"
+var LoggingLocation = "http://10.1.90.46:1337/"
 // testmode = false means logging is on
 twitter.testMode = true;
 twitter.echoLogsToConsole = false;
